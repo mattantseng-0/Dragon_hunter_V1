@@ -439,7 +439,7 @@ Should you try to cross it?
         if choice == 'n':
             return("stream no", life, money, weapon)
         if choice == 'm':
-            pass
+            return("stream maverick", life, money, weapon)
 
 class stream_crossing:
     def scene_contents(self, game_weapons, life, money, weapon):
@@ -530,42 +530,111 @@ class fish_run:
 
 class stream_maverick:
     def scene_contents(self, game_weapons, life, money, weapon):
-        exit(0)
+        print('''
+You decide to be a rebel. You take a running leap and do a
+cannonball into the river. Unfortunatly, the river is
+enchanted. As you enter the water, you feel
+''')
 
 class after_stream:
     def scene_contents(self, game_weapons, life, money, weapon):
-        exit(0)
+        print('''
+After the stream, you continue to walk along the wooded path
+until you reach a fork in the road. Do you go left or right?
+''')
 
 
 #*************************END********************
 class finale:
+    #The dragon's attack is a function
     def dragon_attack(self):
         attack = randint(1, 4)
         chance = randint(1, 6)
+        #There are 5 possible methods that the dragon can attack
+        #with. The variables 'attack' and 'chance' are both used
+        #to determine which attack is done and the function returns
+        #the corresponding amount of damage
 
+#This first case is extremely unlikely, but deadly if it happens
         if attack == 4 and chance == 6:
             print(DHImage_pools.fire_tornado)
             print('''
 The dragon breathes fire and uses its wings
 to create a fiery maelstrom (health - 50)
 ''')
-        return -50
+            return 50
 
         elif attack == 1:
             print(DHImage_pools.fire_dragon)
             print('''
 The dragon breathes fire and scorches you. (health - 20)
-''')        return -20
+''')
+            return 20
         elif attack == 2:
             print('''
 The dragon spins around with his tail and knocks you over (health - 20)
 ''')
-            return -20
+            return 20
         elif attack == 3:
-            pass
+            print('''
+The dragon spews acid all over your face (health -25)
+''')
+            return 25
+
         elif attack == 4:
+            print('''
+The dragon tells a dad joke (health -5)
+''')
+            number = randint(0, len(DHTrivia.dad_jokes)-1)
+            joke = DHTrivia.dad_jokes.pop(number)
+            print(joke)
+            return 5
+
+
+    def hero_attack(self, weapon_list, weapon):
+        #The 'hero_attack' function asks the user how they would like to
+        #attack the dragon and then returns the appropriate amount of
+        #damage
+
+        #Read the values from the weapon dictionary and set those equal to
+        #attack values that deduct from the dragon's health
+        wdamage = weapon_list.get(weapon)
+        fdamage = weapon_list.get('fist')
+
+        #Ask the user what they would like to do
+        print(f'''
+What do you want to do?
+w) Attack with your {weapon} (Damage: {wdamage})
+f) Punch the dragon (Damage: {fdamage})
+r) Run away
+''')
+        choice = input('>')
+
+        #w = use the weapon to attack
+        if choice == 'w':
+            print(f'You use your {weapon} and attack the dragon')
+            return wdamage
+
+        #f = use a fist to attack
+        elif choice == 'f':
+            print("You punch the dragon")
+            return fdamage
+
+        #R = run away
+        elif choice == 'r':
+            print("You decide to run away")
+            return('run')
+
+        # if the user mistypes then run the function again
+        else:
+            print(f"I do not know what {choice} means")
+            self.hero_attack(weapon_list, weapon)
+
+
 
     def scene_contents(self, game_weapons, life, money, weapon):
+
+        #Let's run the scene
         print(f'''
 You find yourself in a grove surrounded by trees.
 You clutch your {weapon} and realise that you have
@@ -577,9 +646,60 @@ the trees.
         print('''
 The ground begins to rumble as you hear the dragon
 approach. Suddenly he looms large at the edge of the field.
+The dragon starts attacking you
 ''')
+        #Hey look, a dragon
         print(DHImage_pools.dragon)
-        exit(0)
+        input('>')
+        #this is the health of the dragon
+        dragon_health = 100
+        choice = None
+
+        #loop this until the dragon or user have died
+        while dragon_health > 0 and life > 0 and choice != 'q':
+
+            #every attack cycle show the user their and the dragon's health
+            print(f'''
+*******************************
+Dragon Health: {dragon_health}
+*******************************
+Health: {life}
+Snogs: {money}
+Weapon: {weapon}
+*******************************
+''')
+            #damage is the number fo hit points that the user attacks with
+            damage = self.hero_attack(game_weapons, weapon)
+            #if the user decides to run, then the hero_attack function returns
+            #run and the user instantly dies... How sad
+            if damage == 'run':
+                print(f'''
+As you begin to run away, the dragon takes offence to
+your cowardness. In retribution he breaths fire, spews
+acid and hits you with his tail.
+''')
+
+                life = 0
+                break
+
+            #attacked is the amount of damage that the dragon does to the user
+            attacked = self.dragon_attack()
+
+            #subtract damage from the dragon's health
+            dragon_health -= damage
+            #subtract attacked from the hero's health
+            life -= attacked
+
+            #pause for 3 seconds and let the user read
+            sleep(3)
+
+
+        if life <=0:
+            return('death', life, money, weapon)
+        elif dragon_health <= 0:
+            print("THE END")
+            exit(0)
+
 
 
 
@@ -644,7 +764,7 @@ path = []
 #These is the variable setup at the beginning of the game
 #for testing purposes, this 'g_scene' can be set to any scene
 #and the game will start there
-g_scene = 'woods start'
+g_scene = 'overview'
 
 health = 100
 snogs = 0
